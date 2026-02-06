@@ -234,8 +234,12 @@ func (s *AIService) UpdateConfig(configID uint, req *UpdateAIConfigRequest) (*mo
 	if req.Settings != "" {
 		updates["settings"] = req.Settings
 	}
-	updates["is_default"] = req.IsDefault
-	updates["is_active"] = req.IsActive
+    if req.IsDefault != nil {
+        updates["is_default"] = *req.IsDefault
+    }
+    if req.IsActive != nil {
+        updates["is_active"] = *req.IsActive
+    }
 
 	if err := tx.Model(&config).Updates(updates).Error; err != nil {
 		tx.Rollback()
