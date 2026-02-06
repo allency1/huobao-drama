@@ -142,6 +142,9 @@
             v-model="form.provider"
             :placeholder="$t('aiConfig.form.providerPlaceholder')"
             @change="handleProviderChange"
+            filterable
+            allow-create
+            default-first-option
             style="width: 100%"
           >
             <el-option
