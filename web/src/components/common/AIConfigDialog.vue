@@ -657,21 +657,43 @@ const handleTabChange = (tabName: string | number) => {
 const handleProviderChange = () => {
   form.model = [];
 
-  // 根据厂商自动设置 Base URL
-  if (form.provider === "gemini" || form.provider === "google") {
+  // ====== [新增]：自定义 provider 不自动覆盖 base_url ======
+  const p = (form.provider || "").toLowerCase().trim();
+  const builtin = new Set([
+    "gemini", "google",
+    "minimax",
+    "volces", "volcengine",
+    "openai",
+    "chatfire",
+    "doubao",
+    "runway",
+    "pika",
+  ]);
+
+  // 不是内置厂商 => 让用户自己填 base_url，不要覆盖
+  if (p && !builtin.has(p)) {
+    if (isEdit.value) {
+      form.name = generateConfigName(form.provider, form.service_type);
+    }
+    return;
+  }
+  // ====== [新增结束] ======
+
+  // 根据厂商自动设置 Base URL（只对内置厂商生效）
+  if (p === "gemini" || p === "google") {
     form.base_url = "https://generativelanguage.googleapis.com";
-  } else if (form.provider === "minimax") {
-    form.base_url = "https://api.minimaxi.com/v1";
-  } else if (form.provider === "volces" || form.provider === "volcengine") {
+  } else if (p === "minimax") {
+    form.base_url = "https://api.minimax.chat/v1";
+  } else if (p === "volces" || p === "volcengine") {
     form.base_url = "https://ark.cn-beijing.volces.com/api/v3";
-  } else if (form.provider === "openai") {
+  } else if (p === "openai") {
     form.base_url = "https://api.openai.com/v1";
-  } else {
-    // chatfire 和其他厂商
+  } else if (p === "chatfire") {
     form.base_url = "https://api.chatfire.site/v1";
   }
+  // 注意：不要再用 else 强行给 chatfire
 
-  if (!isEdit.value) {
+  if (isEdit.value) {
     form.name = generateConfigName(form.provider, form.service_type);
   }
 };
