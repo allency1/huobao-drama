@@ -577,18 +577,50 @@ const handleTabChange = (tabName: string | number) => {
 };
 
 const handleProviderChange = () => {
-  // 切换厂商时清空已选模型
+  // 切换厂商清空已选模型
   form.model = [];
 
-  // 根据厂商自动设置默认 base_url
-  if (form.provider === "gemini" || form.provider === "google") {
-    form.base_url = "https://api.chatfire.site";
-  } else {
-    // openai, chatfire 等其他厂商
+  // ---- 新增：允许自定义厂商，不强制覆盖 base_url ----
+  const p = (form.provider || "").toLowerCase().trim();
+
+  const builtin = new Set([
+    "gemini", "google",
+    "openai",
+    "chatfire",
+    "doubao",
+    "volces", "volcengine",
+    "minimax",
+    "runway",
+    "pika",
+  ]);
+
+  // 不是内置厂商：不自动改 base_url，让用户自己填
+  if (p && !builtin.has(p)) {
+    // 仅在新增配置时自动更新名称
+    if (!isEdit.value) {
+      form.name = generateConfigName(form.provider, form.service_type);
+    }
+    return;
+  }
+  // ---- 新增结束 ----
+
+  // 内置厂商：才自动设置默认 base_url
+  if (p === "gemini" || p === "google") {
+    form.base_url = "https://generativelanguage.googleapis.com";
+  } else if (p === "minimax") {
+    form.base_url = "https://api.minimax.chat/v1";
+  } else if (p === "volces" || p === "volcengine") {
+    form.base_url = "https://ark.cn-beijing.volces.com/api/v3";
+  } else if (p === "openai") {
+    form.base_url = "https://api.openai.com/v1";
+  } else if (p === "chatfire") {
     form.base_url = "https://api.chatfire.site/v1";
+  } else if (p === "doubao") {
+    // 如果你有豆包自己的默认地址可以填，没有就留空也行
+    // form.base_url = "https://xxx";
   }
 
-  // 仅在新建配置时自动更新名称
+  // 仅在新增配置时自动更新名称
   if (!isEdit.value) {
     form.name = generateConfigName(form.provider, form.service_type);
   }
