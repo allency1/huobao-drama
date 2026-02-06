@@ -601,31 +601,47 @@ func (s *VideoGenerationService) getVideoClient(provider string, modelName strin
 		model = config.Model[0]
 	}
 
-	// 根据配置中的 provider 创建对应的客户端
-	var endpoint string
-	var queryEndpoint string
+    // ✅ 从配置读取 endpoint / query_endpoint（允许为空）
+    endpoint := config.Endpoint
+    queryEndpoint := config.QueryEndpoint
 
-	switch config.Provider {
-	case "chatfire":
-		endpoint = "/video/generations"
-		queryEndpoint = "/video/task/{taskId}"
-		return video.NewChatfireClient(baseURL, apiKey, model, endpoint, queryEndpoint), nil
-	case "doubao", "volcengine", "volces":
-		endpoint = "/contents/generations/tasks"
-		queryEndpoint = "/contents/generations/tasks/{taskId}"
-		return video.NewVolcesArkClient(baseURL, apiKey, model, endpoint, queryEndpoint), nil
-	case "openai":
-		// OpenAI Sora 使用 /v1/videos 端点
-		return video.NewOpenAISoraClient(baseURL, apiKey, model), nil
-	case "runway":
-		return video.NewRunwayClient(baseURL, apiKey, model), nil
-	case "pika":
-		return video.NewPikaClient(baseURL, apiKey, model), nil
-	case "minimax":
-		return video.NewMinimaxClient(baseURL, apiKey, model), nil
-	default:
-		return nil, fmt.Errorf("unsupported video provider: %s", provider)
-	}
+    switch strings.ToLower(config.Provider) {
+    case "chatfire":
+        if endpoint == "" {
+            endpoint = "/video/generations"
+        }
+        if queryEndpoint == "" {
+            queryEndpoint = "/video/task/{taskId}"
+        }
+        return video.NewChatfireClient(baseURL, apiKey, model, endpoint, queryEndpoint), nil
+
+    case "doubao", "volcengine", "volces":
+        if endpoint == "" {
+            endpoint = "/contents/generations/tasks"
+        }
+        if queryEndpoint == "" {
+            queryEndpoint = "/contents/generations/tasks/{taskId}"
+        }
+        return video.NewVolcesArkClient(baseURL, apiKey, model, endpoint, queryEndpoint), nil
+
+    case "openai":
+        // OpenAI Sora
+        return video.NewOpenAISoraClient(baseURL, apiKey, model), nil
+
+    case "runway":
+        return video.NewRunwayClient(baseURL, apiKey, model), nil
+    case "pika":
+        return video.NewPikaClient(baseURL, apiKey, model), nil
+    case "minimax":
+        return video.NewMinimaxClient(baseURL, apiKey, model), nil
+
+    default:
+        // ✅ 关键：未知 provider 也允许，走 OpenAI-compatible（chat/completions 视频实现）
+        if endpoint == "" {
+            endpoint = "/chat/completions"
+        }
+        return video.NewOpenAIChatCompletionsVideoClient(baseURL, apiKey, model, endpoint), nil
+    }
 }
 
 func (s *VideoGenerationService) RecoverPendingTasks() {
