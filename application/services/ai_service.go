@@ -45,8 +45,8 @@ type UpdateAIConfigRequest struct {
 	Endpoint      string             `json:"endpoint"`
 	QueryEndpoint string             `json:"query_endpoint"`
 	Priority      *int               `json:"priority"`
-	IsDefault     bool               `json:"is_default"`
-	IsActive      bool               `json:"is_active"`
+	IsDefault     *bool               `json:"is_default"`
+	IsActive      *bool               `json:"is_active"`
 	Settings      string             `json:"settings"`
 }
 
