@@ -203,6 +203,29 @@
           </div>
         </el-form-item>
 
+        <el-form-item label="Endpoint (可选)">
+          <el-input
+            v-model="form.endpoint"
+            placeholder="例如: /v1/chat/completions 或 /images/generations"
+          />
+          <div class="form-tip">
+            自定义 API 端点路径。留空则使用默认值。完整地址 = Base URL + Endpoint
+          </div>
+        </el-form-item>
+
+        <el-form-item
+          v-if="form.service_type === 'video'"
+          label="Query Endpoint (可选)"
+        >
+          <el-input
+            v-model="form.query_endpoint"
+            placeholder="例如: /video/task/{taskId}"
+          />
+          <div class="form-tip">
+            异步任务查询端点（仅视频服务需要）。留空则使用默认值或同步模式
+          </div>
+        </el-form-item>
+
         <el-form-item :label="$t('aiConfig.form.apiKey')" prop="api_key">
           <el-input
             v-model="form.api_key"
@@ -305,6 +328,8 @@ const form = reactive<
   base_url: "",
   api_key: "",
   model: [],
+  endpoint: "",
+  query_endpoint: "",
   priority: 0,
   is_active: true,
 });
@@ -542,6 +567,8 @@ const handleEdit = (config: AIServiceConfig) => {
     base_url: config.base_url,
     api_key: config.api_key,
     model: Array.isArray(config.model) ? config.model : [config.model],
+    endpoint: config.endpoint || "",
+    query_endpoint: config.query_endpoint || "",
     priority: config.priority || 0,
     is_active: config.is_active,
   });
@@ -631,6 +658,8 @@ const handleSubmit = async () => {
           base_url: form.base_url,
           api_key: form.api_key,
           model: form.model,
+          endpoint: form.endpoint || undefined,
+          query_endpoint: form.query_endpoint || undefined,
           priority: form.priority,
           is_active: form.is_active,
         };
@@ -710,6 +739,8 @@ const resetForm = () => {
     base_url: "",
     api_key: "",
     model: [],
+    endpoint: "",
+    query_endpoint: "",
     priority: 0,
     is_active: true,
   });
